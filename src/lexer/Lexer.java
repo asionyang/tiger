@@ -32,12 +32,46 @@ public class Lexer
       return new Token(Kind.TOKEN_EOF, ln);
 
     // skip all kinds of "blanks"
-    while (' ' == c || '\t' == c || '\n' == c) {
-      c = this.fstream.read();
-      if ('\n' == c){
+    while (' ' == c || '\t' == c || '\n' == c || '\r' == c || '/' == c) {
+      if(c == '\n'){
         ln++;
+        c = this.fstream.read();
+      }else if(' ' == c || '\t' == c || '\r' == c ){
+        c = this.fstream.read();
       }
+
+      while(c == '/') {
+        c = this.fstream.read();
+        if (c == '/') {
+          while (c != '\n') {
+            c = this.fstream.read();
+          }
+          ln++;
+          c = this.fstream.read();
+        }
+        else if(c == '*'){
+          c = this.fstream.read();
+          do{
+
+            while (c != '*'){
+              if(c == '\n') {
+                ln++;
+              }
+              c = this.fstream.read();
+            }
+            c = this.fstream.read();
+            if(c == '/'){
+              c = this.fstream.read();
+              break;
+            }
+
+          }while (true);
+
+        }
+      }
+
     }
+
     if (-1 == c)
       return new Token(Kind.TOKEN_EOF, ln);
 
@@ -77,6 +111,7 @@ public class Lexer
         return new Token(Kind.TOKEN_SUB, ln);
       case '*':
         return new Token(Kind.TOKEN_TIMES, ln);
+      case '0':
       case '1':
       case '2':
       case '3':
@@ -90,13 +125,14 @@ public class Lexer
         while(Character.isDigit(c) );
         this.fstream.unread(c);
         return new Token(Kind.TOKEN_NUM, ln);
+
       
       default:
         if(Character.isLetter(c)|| c == '_' || c == '$'){
-          String tt = String.valueOf(c);
+          String tt = String.valueOf((char)c);
           c = this.fstream.read();
           while(Character.isLetter(c) || Character.isDigit(c) || c =='_' || c == '$'){
-            tt = tt.concat(String.valueOf(c));
+            tt = tt.concat(String.valueOf((char)c));
             c = this.fstream.read();
           }
           this.fstream.unread(c);
@@ -154,7 +190,7 @@ public class Lexer
       // is not that much and may be less than 50 lines. If you
       // find you are writing a lot of code, you
       // are on the wrong way.
-      new Todo();
+      //new Todo();
       return null;
     }
   }
